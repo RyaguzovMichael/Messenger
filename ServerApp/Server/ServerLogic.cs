@@ -14,75 +14,135 @@ using System.Threading;
 
 namespace ServerApp.Server;
 
-internal partial class ServerLogic : IServerLogic
-{
-    private const string CONFIG_PATH = @".\Data";
-    private const string CONFIG_FILE_NAME = @"config.json";
-    private readonly JsonSerializerOptions jsonSerializerOptions = new()
-    {
-        WriteIndented = true
-    };
+public delegate Package GenerateRequest();
 
+internal class ServerLogic : IServerLogic
+{
     private IPAddress _ip;
     private int _port;
     private IPEndPoint _endPoint;
     private Socket _listener;
     private bool _serverIsVorking = true;
     private Thread _serverMainTread;
+    private readonly Dictionary<PackageInfoType, GenerateRequest> _requestGeneratorsDictionary;
+
+    public IPAddress IP 
+    { 
+        get => _ip; 
+        private set
+        {
+            _ip = value;
+            Logger.Write($"IP set on: {_ip}");
+            ConfigInteractor.SaveConfig(new Config(IP.ToString(), Port));
+        }
+    }
+
+    public int Port 
+    { 
+        get => _port;
+        private set
+        {
+            if (value >= 49152 && value <= 65535)
+            {
+                _port = value;
+                Logger.Write($"Port set on: {_port}");
+                ConfigInteractor.SaveConfig(new Config(IP.ToString(), Port));
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException("Port can stand only in range 49152-65535");
+            }
+        }
+    }
+    public IPEndPoint EndPoint 
+    { 
+        get => _endPoint;
+        private set
+        {
+            _ip = value.Address;
+            _port = value.Port;
+            _endPoint = value;
+            Logger.Write($"Endpoint set on: {_endPoint}");
+            ConfigInteractor.SaveConfig(new Config(IP.ToString(), Port));
+        }
+    }
 
     public ServerLogic()
     {
         ServerLoad();
-    }
-
-    private void ServerLoad()
-    {
-        if (!Directory.Exists(CONFIG_PATH)) Directory.CreateDirectory(CONFIG_PATH);
-        if (!File.Exists(Path.Combine(CONFIG_PATH,CONFIG_FILE_NAME)))
+        _requestGeneratorsDictionary = new()
         {
-            File.Create(Path.Combine(CONFIG_PATH, CONFIG_FILE_NAME)).Close();
-            Config defaultConfig = new("localhost", 12000);
-            string jsonData = JsonSerializer.Serialize<Config>(defaultConfig, jsonSerializerOptions);
-            File.WriteAllText(Path.Combine(CONFIG_PATH, CONFIG_FILE_NAME), jsonData);
-        }
-        string data = File.ReadAllText(Path.Combine(CONFIG_PATH, CONFIG_FILE_NAME));
-        Config config = JsonSerializer.Deserialize<Config>(data, jsonSerializerOptions);
-        if (!IPAddress.TryParse(config.IP, out _ip))
-        {
-            try
-            {
-                _ip = Dns.GetHostEntry(config.IP).AddressList[0];
-            }
-            catch (Exception)
-            {
-                Logger.Write($"Bad config IP: {config.IP}, set default \"localhost\"");
-                Config defaultConfig = new("localhost", 12000);
-                string jsonData = JsonSerializer.Serialize<Config>(defaultConfig, jsonSerializerOptions);
-                File.WriteAllText(Path.Combine(CONFIG_PATH, CONFIG_FILE_NAME), jsonData);
-                _ip = Dns.GetHostEntry(defaultConfig.IP).AddressList[0];
-            }
-        }
-        _port = config.Port;
-        _endPoint = new(_ip, _port);
-        _listener = new(_ip.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        _listener.Bind(_endPoint);
-        _listener.Listen(10);
-        Logger.Write($"The server is successfully loaded at: {_endPoint}");
+            { PackageInfoType.Ping, GeneratePingRequest }
+        };
     }
 
     public void StartServer()
     {
-        _serverMainTread = new(StartListening);
-        _serverMainTread.Start();
-        Logger.Write("The main thread is up and running");
+        if(_serverMainTread == null || _serverMainTread.ThreadState != ThreadState.Running)
+        {
+            _serverMainTread = new(StartListening);
+            _serverMainTread.Start();
+            Logger.Write("The main thread is up and running");
+        }
+        else
+        {
+            throw new InvalidOperationException("The server is already running");
+        }
+    }
+
+    public void RestartServer()
+    {
+        if (StopServer())
+        {
+            _serverIsVorking = true;
+            StartServer();
+            Logger.Write("Server is restarted");
+        }
+    }
+
+    public bool StopServer()
+    {
+        if (_serverMainTread.ThreadState == ThreadState.Running)
+        {
+            _serverIsVorking = false;
+            try
+            {
+                //TODO: Переделать остановку сервера, устаревший метод Abort.
+                _serverMainTread.Abort();
+            }
+            catch (Exception ex)
+            {
+                Logger.Write($"Exception on server: {ex.Message}");
+                throw new InvalidOperationException($"Exception on server: {ex.Message}");
+            }
+            Logger.Write("Server is stopped");
+        }
+        return true;
+    }
+
+    public void SetIP(string ip) => IP = IPAddress.Parse(ip);
+
+    public void SetPort(string port) => Port = int.Parse(port);
+
+    public void SetIPEndPoint(string ipEndPoint) => EndPoint = IPEndPoint.Parse(ipEndPoint);
+
+    private void ServerLoad()
+    {
+        Config config = ConfigInteractor.LoadConfig();
+        _ip = IPAddress.Parse(config.IP);
+        _port = config.Port;
+        _endPoint = new(IP, Port);
+        _listener = new(IP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        _listener.Bind(EndPoint);
+        _listener.Listen(10);
+        Logger.Write($"The server is successfully loaded at: {EndPoint}");
     }
 
     private void StartListening()
     {
-
-        try
+        while (_serverIsVorking)
         {
-            while (_serverIsVorking)
+            try
             {
                 Socket handler = _listener.Accept();
                 Logger.Write($"A user with the address {handler.RemoteEndPoint} connected to server");
@@ -110,15 +170,26 @@ internal partial class ServerLogic : IServerLogic
                 handler.Shutdown(SocketShutdown.Both);
                 handler.Close();
             }
-        }
-        catch (Exception ex)
-        {
-            Logger.Write(ex.Message);
+            catch (Exception ex)
+            {
+                Logger.Write(ex.Message);
+            }
         }
     }
 
     private Package GenerateReply(Package package)
     {
-        throw new NotImplementedException();
+        if(!_requestGeneratorsDictionary.TryGetValue(package.InfoType, out GenerateRequest replyGenerator))
+        {
+            Logger.Write($"An unsupported request was received \"{package.InfoType}\"");
+            return new Package(PackageInfoType.NotSupportedRequest, $"The \"{package.InfoType}\" request not supported now");
+        }
+        return replyGenerator.Invoke();
+    }
+
+    private Package GeneratePingRequest()
+    {
+        Logger.Write("Ping request generated");
+        return new Package(PackageInfoType.Ping, "");
     }
 }

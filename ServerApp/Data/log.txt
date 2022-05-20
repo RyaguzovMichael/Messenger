@@ -1,1 +1,3 @@
-﻿
+﻿> 20-May-22 17:10:00 : -------------- New Session Start ---------------
+> 20-May-22 17:10:00 : The server is successfully loaded at: 192.168.1.5:50000
+> 20-May-22 17:10:00 : The main thread is up and running

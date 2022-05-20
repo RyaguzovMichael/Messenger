@@ -4,6 +4,7 @@
     {
         Ping,
         BadPackage,
+        NotSupportedRequest,
         Login,
         MessageSend
     }

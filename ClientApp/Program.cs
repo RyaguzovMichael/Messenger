@@ -10,7 +10,7 @@ try
     {
         Console.Write("Введите сообщение: ");
         string message = Console.ReadLine();
-        SendMessage("192.168.1.5", 12000, message);
+        SendMessage("192.168.1.5", 50000, message);
         Console.WriteLine();
     }
 }
@@ -33,13 +33,12 @@ static void SendMessage(string ipAddress, int port, string message)
 
     Console.WriteLine($"Сокет соединяется с {sender.RemoteEndPoint}");
     Package send = new(PackageInfoType.Ping, "");
-    Console.WriteLine(send);
     byte[] sendingBytes = send.ConvertToByteArray();
     sender.Send(sendingBytes);
 
     byte[] receivedBytes = new byte[Package.MAX_PACKAGE_LENGTH];
     int bytesCount = sender.Receive(receivedBytes);
-    string data = Encoding.UTF8.GetString(receivedBytes);
+    string data = Encoding.UTF8.GetString(receivedBytes, 0, bytesCount);
     if (!Package.TryParce(data, out Package package))
     {
         Console.WriteLine($"A bad data packet was received.");

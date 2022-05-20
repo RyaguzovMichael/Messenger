@@ -1,0 +1,22 @@
+{
+  "default": "HELP             Get information about a command\nCLEAR CLR        Clear the console\nRESTART          Restarting the server\nSTOP             Server shutdown\nSTART            Starting up the server\nEXIT             Shutting down the server and closing the console\nGETIP GIP        Show server IP address\nSETIP SIP        Set server IP address\nGETPORT GP       Get server port\nSETPORT SP       Set server port\nGETENDPOINT GEP  Get full server address\nSETENDPOINT SEP  Set full server address",
+  "help": "Get information about a command\n\nHELP [command]\n\ncommand - The command about which you want to find out information\n\nExample: HELP CLEAR",
+  "clear": "Clear the console\nHas no arguments whatsoever",
+  "clr": "Clear the console\nHas no arguments whatsoever",
+  "restart": "Restarting the server\nHas no arguments whatsoever",
+  "stop": "Server shutdown\nHas no arguments whatsoever",
+  "start": "Starting up the server\nHas no arguments whatsoever",
+  "exit": "Shutting down the server and closing the console\nHas no arguments whatsoever",
+  "getip": "Show current server IP address\nHas no arguments whatsoever",
+  "setip": "Set a different server IP address\n\nSETIP [IP]\n\nIP - Server IP address. Format:***.***.***.***\n\nExample: SETIP 127.0.0.1",
+  "gip": "Show current server IP address\nHas no arguments whatsoever",
+  "sip": "Set a different server IP address\n\nSIP [IP]\n\nIP - Server IP address. Format:***.***.***.***\n\nExample: SIP 127.0.0.1",
+  "getport": "Show current server port\nHas no arguments whatsoever",
+  "setport": "Set a different server port\n\nSETPORT [port]\n\nport - Server port. Format: number in range 49152—65535\n\nExample: SETPORT 50000",
+  "gp": "Show current server port\nHas no arguments whatsoever",
+  "sp": "Set a different server port\n\nSP [port]\n\nport - Server port. Format: number in range 49152—65535\n\nExample: SP 50000",
+  "getendpoint": "Show current server full address\nHas no arguments whatsoever",
+  "setendpoint": "Set a different full server address\n\nSETENDPOINT [fulladdress]\n\fulladdress - Server port. Format: ***.***.***.***:*****, port in range 49152—65535\n\nExample: SETENDPOINT 127.0.0.1:50000",
+  "gep": "Show current server full address\nHas no arguments whatsoever",
+  "sep": "Set a different full server address\n\nSEP [fulladdress]\n\fulladdress - Server port. Format: ***.***.***.***:*****, port in range 49152—65535\n\nExample: SEP 127.0.0.1:50000"
+}
