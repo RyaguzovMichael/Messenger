@@ -5,20 +5,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ServerApp.UI
+namespace ServerApp.UI;
+
+internal class ConsoleUI : IUserInterface
 {
-    internal class ConsoleUI : IUserInterface
+    private IServerLogic serverLogic;
+
+    public ConsoleUI(IServerLogic serverLogic)
     {
-        private IServerLogic serverLogic;
+        this.serverLogic = serverLogic;
+    }
 
-        public ConsoleUI(IServerLogic serverLogic)
-        {
-            this.serverLogic = serverLogic;
-        }
-
-        public void StartUI()
-        {
-            
-        }
+    public void StartUI()
+    {
+        
     }
 }

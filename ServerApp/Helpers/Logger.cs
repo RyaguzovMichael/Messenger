@@ -1,24 +1,25 @@
 ﻿using System;
 using System.IO;
 
-namespace ServerApp.Helpers
+namespace ServerApp.Helpers;
+
+internal static class Logger
 {
-    internal static class Logger
+    private const string LOG_PATH = @".\Data";
+    private const string LOG_FILE_NAME = @"log.txt";
+
+    static Logger()
     {
-        private const string LOG_PATH = @"..\..\..\Data\log.txt";
+        Write("-------------- New Session Start ---------------");
+    }
 
-        static Logger()
-        {
-            Write("-------------- New Session Start ---------------");
-        }
-
-        internal static void Write(string text)
-        {
-            string logString = $"> {DateTime.Now} : ";
-            logString += text;
-            logString += "\n";
-            if (!File.Exists(LOG_PATH)) File.Create(LOG_PATH).Close();
-            File.AppendAllText(LOG_PATH, logString);
-        }
+    internal static void Write(string text)
+    {
+        string logString = $"> {DateTime.Now} : ";
+        logString += text;
+        logString += "\n";
+        if (!Directory.Exists(LOG_PATH)) Directory.CreateDirectory(LOG_PATH);
+        if (!File.Exists(Path.Combine(LOG_PATH, LOG_FILE_NAME))) File.Create(Path.Combine(LOG_PATH, LOG_FILE_NAME)).Close();
+        File.AppendAllText(Path.Combine(LOG_PATH, LOG_FILE_NAME), logString);
     }
 }

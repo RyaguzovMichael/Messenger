@@ -3,8 +3,9 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 using System.Text;
+using System.Text.Json.Serialization;
 
-namespace Package
+namespace Packages
 {
     public class Package
     {
@@ -18,11 +19,19 @@ namespace Package
         public PackageInfoType InfoType { get; private set; }
         public string Data { get; private set; }
 
-        public Package(DateTime dateTime, PackageInfoType infoType, string infoString)
+        public Package(PackageInfoType infoType, string infoString)
+        {
+            DateTime = DateTime.Now;
+            InfoType = infoType;
+            Data = infoString;
+        }
+
+        [JsonConstructorAttribute]
+        public Package(DateTime dateTime, PackageInfoType infoType, string data)
         {
             DateTime = dateTime;
             InfoType = infoType;
-            Data = infoString;
+            Data = data;
         }
 
         public byte[] ConvertToByteArray()
@@ -35,11 +44,10 @@ namespace Package
             throw new InvalidOperationException("Too large InfoString");
         }
 
-        public static bool TryParce(byte[] data, out Package package)
+        public static bool TryParce(string jsonString, out Package package)
         {
             try
             {
-                string jsonString = Encoding.UTF8.GetString(data);
                 package = JsonSerializer.Deserialize<Package>(jsonString, serializerOptions);
                 return true;
             }

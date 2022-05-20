@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace ServerApp.Interfaces;
 
-namespace ServerApp.Interfaces
+internal interface IServerLogic
 {
-    internal interface IServerLogic
-    {
-    }
+    void StartServer();
 }
