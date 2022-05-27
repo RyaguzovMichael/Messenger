@@ -1,8 +1,8 @@
-﻿using ServerApp.Interfaces;
+﻿using ServerApp.Abstractions;
 using ServerApp.Server;
 using ServerApp.UI;
 
-IServerLogic serverLogic = new ServerLogic();
+IServer serverLogic = new ServerLogic();
 serverLogic.StartServer();
 IUserInterface userInterface = new ConsoleUI(serverLogic);
 userInterface.StartUI();

@@ -5,6 +5,7 @@ namespace ServerApp.Helpers;
 
 internal static class Logger
 {
+    //TODO: Add asynchronous file access
     private const string LOG_PATH = @".\Data";
     private const string LOG_FILE_NAME = @"log.txt";
 

@@ -8,6 +8,7 @@ namespace ServerApp.Helpers
 {
     internal static class ConfigInteractor
     {
+        //TODO: Add asynchronous file access
         private const string CONFIG_PATH = @".\Data";
         private const string CONFIG_FILE_NAME = @"config.json";
         private const int DEFAULT_PORT = 50000;

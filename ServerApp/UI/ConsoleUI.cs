@@ -1,11 +1,8 @@
-﻿using ServerApp.Interfaces;
+﻿using ServerApp.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace ServerApp.UI;
 
@@ -13,13 +10,12 @@ public delegate string CommandReaction(string[] args);
 
 internal class ConsoleUI : IUserInterface
 {
-    private bool _uiIsWork = true;
-    private readonly IServerLogic _serverLogic;
+    private readonly IServer _serverLogic;
     private readonly Dictionary<string, CommandReaction> _commandReactions;
     private readonly Dictionary<string, string> _commandsHelp;
     private const string HELP_INFO_PATH = @".\Data\HelpData.json";
 
-    public ConsoleUI(IServerLogic serverLogic)
+    public ConsoleUI(IServer serverLogic)
     {
         _serverLogic = serverLogic;
         _commandReactions = new()
@@ -52,7 +48,7 @@ internal class ConsoleUI : IUserInterface
     public void StartUI()
     {
         Console.WriteLine("------- Simple server console V1.0.0 --------\n");
-        while (_uiIsWork)
+        while (true)
         {
             Console.Write("> ");
             string command = Console.ReadLine().ToLower().Trim();
@@ -67,7 +63,7 @@ internal class ConsoleUI : IUserInterface
             else
             {
                 Console.WriteLine("Unknown command");
-                Console.WriteLine(GetHelpInfo(new string[0]));
+                Console.WriteLine(GetHelpInfo(Array.Empty<string>()));
             }
         }
     }
@@ -134,7 +130,7 @@ internal class ConsoleUI : IUserInterface
         try
         {
             _serverLogic.StopServer();
-            _uiIsWork = false;
+            Environment.Exit(0);
             return "";
         }
         catch (Exception ex)
@@ -143,28 +139,16 @@ internal class ConsoleUI : IUserInterface
         }
     }
 
-    private string SetEndPoint(string[] args)
-    {
-        if (args.Length != 1) return GetHelpInfo(new string[] {"setendpoint"});
-        try
-        {
-            _serverLogic.SetIPEndPoint(args[0]);
-            return GetEndPoint(args);
-        }
-        catch (Exception ex)
-        {
-            return ex.Message;
-        }
-    }
+    private string SetEndPoint(string[] args) => "Not included command on server";
 
-    private string GetEndPoint(string[] args) => $"Server End Point: {_serverLogic.EndPoint}";
+    private string GetEndPoint(string[] args) => "Not included command on server";
 
     private string SetPort(string[] args)
     {
         if (args.Length != 1) return GetHelpInfo(new string[] { "setport" });
         try
         {
-            _serverLogic.SetPort(args[0]);
+            _serverLogic.Port = int.Parse(args[0]);
             return GetPort(args);
         }
         catch (Exception ex)
@@ -175,19 +159,7 @@ internal class ConsoleUI : IUserInterface
 
     private string GetPort(string[] args) => $"Server Port: {_serverLogic.Port}";
 
-    private string SetIP(string[] args)
-    {
-        if (args.Length != 1) return GetHelpInfo(new string[] { "setip" });
-        try
-        {
-            _serverLogic.SetIP(args[0]);
-            return GetIP(args);
-        }
-        catch (Exception ex)
-        {
-            return ex.Message;
-        }
-    }
+    private string SetIP(string[] args) => "Not included command on server";
 
-    private string GetIP(string[] args) => $"Server IP: {_serverLogic.IP}";
+    private string GetIP(string[] args) => "Not included command on server";
 }

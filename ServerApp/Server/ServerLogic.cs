@@ -1,195 +1,123 @@
-﻿using ServerApp.Interfaces;
+﻿using NetworkHelpers.Abstractions;
+using ServerApp.Abstractions;
 using ServerApp.Helpers;
-using Packages;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Text.Json;
-using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 
 namespace ServerApp.Server;
 
-public delegate Package GenerateRequest();
-
-internal class ServerLogic : IServerLogic
+internal class ServerLogic : IServer
 {
-    private IPAddress _ip;
     private int _port;
-    private IPEndPoint _endPoint;
-    private Socket _listener;
-    private bool _serverIsVorking = true;
-    private Thread _serverMainTread;
-    private readonly Dictionary<PackageInfoType, GenerateRequest> _requestGeneratorsDictionary;
+    private TcpListener _listener;
+    private List<Connection> _connections;
+    private bool _serverIsVorking;
 
-    public IPAddress IP 
-    { 
-        get => _ip; 
-        private set
-        {
-            _ip = value;
-            Logger.Write($"IP set on: {_ip}");
-            ConfigInteractor.SaveConfig(new Config(IP.ToString(), Port));
-        }
-    }
-
-    public int Port 
-    { 
+    public int Port
+    {
         get => _port;
-        private set
+        set
         {
             if (value >= 49152 && value <= 65535)
             {
                 _port = value;
                 Logger.Write($"Port set on: {_port}");
-                ConfigInteractor.SaveConfig(new Config(IP.ToString(), Port));
+                ConfigInteractor.SaveConfig(new Config("localhost", Port));
             }
             else
             {
-                throw new ArgumentOutOfRangeException("Port can stand only in range 49152-65535");
+                throw new ArgumentOutOfRangeException("Port", "Port can stand only in range 49152-65535");
             }
-        }
-    }
-    public IPEndPoint EndPoint 
-    { 
-        get => _endPoint;
-        private set
-        {
-            _ip = value.Address;
-            _port = value.Port;
-            _endPoint = value;
-            Logger.Write($"Endpoint set on: {_endPoint}");
-            ConfigInteractor.SaveConfig(new Config(IP.ToString(), Port));
         }
     }
 
     public ServerLogic()
     {
-        ServerLoad();
-        _requestGeneratorsDictionary = new()
-        {
-            { PackageInfoType.Ping, GeneratePingRequest }
-        };
+        Config config = ConfigInteractor.LoadConfig();
+        _port = config.Port;
+        _connections = new();
+        _serverIsVorking = false;
+        _listener = new(IPAddress.Any, _port);
     }
 
     public void StartServer()
     {
-        if(_serverMainTread == null || _serverMainTread.ThreadState != ThreadState.Running)
-        {
-            _serverMainTread = new(StartListening);
-            _serverMainTread.Start();
-            Logger.Write("The main thread is up and running");
-        }
-        else
-        {
-            throw new InvalidOperationException("The server is already running");
-        }
+        if (_serverIsVorking) return;
+        _serverIsVorking = true;
+        Thread listen = new(Listen);
+        listen.Start();
+        Logger.Write("The main thread is up and running");
+    }
+
+    public void StopServer()
+    {
+        if (!_serverIsVorking) return;
+        _serverIsVorking = false;
+        _listener.Stop();
+        foreach (Connection connection in _connections) connection.Close();
+        Logger.Write("Server is stopped");
     }
 
     public void RestartServer()
     {
-        if (StopServer())
+        StopServer();
+        StartServer();
+        Logger.Write("Server is restarted");
+    }
+
+    public Dictionary<Guid, string> GetLogginedUsers()
+    {
+        Dictionary<Guid, string> users = new();
+        foreach (Connection connection in _connections)
         {
-            _serverIsVorking = true;
-            StartServer();
-            Logger.Write("Server is restarted");
+            if (connection.ID != Guid.Empty) users.Add(connection.ID, connection.UserName);
+        }
+        return users;
+    }
+
+    internal void BroadcastMessage(ISpecificPackage package, Connection ignoredConnection)
+    {
+        foreach (Connection connection in _connections)
+        {
+            if (connection != ignoredConnection) connection.SendPackage(package);
         }
     }
 
-    public bool StopServer()
+    internal void RemoveConnection(Connection connection)
     {
-        if (_serverMainTread.ThreadState == ThreadState.Running)
-        {
-            _serverIsVorking = false;
-            try
-            {
-                //TODO: Переделать остановку сервера, устаревший метод Abort.
-                _serverMainTread.Abort();
-            }
-            catch (Exception ex)
-            {
-                Logger.Write($"Exception on server: {ex.Message}");
-                throw new InvalidOperationException($"Exception on server: {ex.Message}");
-            }
-            Logger.Write("Server is stopped");
-        }
-        return true;
+        _connections.Remove(connection);
     }
 
-    public void SetIP(string ip) => IP = IPAddress.Parse(ip);
-
-    public void SetPort(string port) => Port = int.Parse(port);
-
-    public void SetIPEndPoint(string ipEndPoint) => EndPoint = IPEndPoint.Parse(ipEndPoint);
-
-    private void ServerLoad()
+    private void Listen()
     {
-        Config config = ConfigInteractor.LoadConfig();
-        _ip = IPAddress.Parse(config.IP);
-        _port = config.Port;
-        _endPoint = new(IP, Port);
-        _listener = new(IP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        _listener.Bind(EndPoint);
-        _listener.Listen(10);
-        Logger.Write($"The server is successfully loaded at: {EndPoint}");
-    }
-
-    private void StartListening()
-    {
-        while (_serverIsVorking)
+        try
         {
-            try
+            _listener.Start();
+            Logger.Write($"The server is successfully loaded, and listen port: {_port}");
+            while (_serverIsVorking)
             {
-                Socket handler = _listener.Accept();
-                Logger.Write($"A user with the address {handler.RemoteEndPoint} connected to server");
-                byte[] bytes = new byte[Package.MAX_PACKAGE_LENGTH];
-                int bytesCount = handler.Receive(bytes);
-                string data = Encoding.UTF8.GetString(bytes, 0, bytesCount);
-                Logger.Write($"Received package Data: {data}");
-
-                Package reply;
-                if (!Package.TryParce(data, out Package package))
+                try
                 {
-                    Logger.Write($"A bad data packet was received.");
-                    reply = new Package(PackageInfoType.BadPackage, "");
+                    TcpClient tcpClient = _listener.AcceptTcpClient();
+                    Connection connection = new(tcpClient, this);
+                    Thread clientThread = new(connection.Process);
+                    _connections.Add(connection);
+                    clientThread.Start();
                 }
-                else
+                catch (Exception ex)
                 {
-                    Logger.Write($"Received data packet whith type \"{package.InfoType}\"");
-                    reply = GenerateReply(package);
+                    Logger.Write(ex.Message);
+                    StopServer();
                 }
-
-                byte[] replyBytes = reply.ConvertToByteArray();
-                handler.Send(replyBytes);
-                Logger.Write($"Sended data packet whith type \"{reply.InfoType}\"");
-                Logger.Write($"A user with the address {handler.RemoteEndPoint} disconnected.");
-                handler.Shutdown(SocketShutdown.Both);
-                handler.Close();
-            }
-            catch (Exception ex)
-            {
-                Logger.Write(ex.Message);
             }
         }
-    }
-
-    private Package GenerateReply(Package package)
-    {
-        if(!_requestGeneratorsDictionary.TryGetValue(package.InfoType, out GenerateRequest replyGenerator))
+        catch (Exception ex)
         {
-            Logger.Write($"An unsupported request was received \"{package.InfoType}\"");
-            return new Package(PackageInfoType.NotSupportedRequest, $"The \"{package.InfoType}\" request not supported now");
+            Logger.Write(ex.Message);
+            StopServer();
         }
-        return replyGenerator.Invoke();
-    }
-
-    private Package GeneratePingRequest()
-    {
-        Logger.Write("Ping request generated");
-        return new Package(PackageInfoType.Ping, "");
     }
 }

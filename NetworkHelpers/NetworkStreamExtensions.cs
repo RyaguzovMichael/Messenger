@@ -27,10 +27,9 @@ public static class NetworkStreamExtensions
     {
         byte[] data = new byte[64];
         StringBuilder builder = new();
-        int bytesCount = 0;
         do
         {
-            bytesCount = stream.Read(data, 0, data.Length);
+            int bytesCount = stream.Read(data, 0, data.Length);
             builder.Append(Encoding.Unicode.GetString(data, 0, bytesCount));
         } while (stream.DataAvailable);
         return Package.ConvertFromString(builder.ToString(0, builder.Length));

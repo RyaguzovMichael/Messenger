@@ -7,15 +7,15 @@ namespace NetworkHelpers.Packages
 {
     public class AddressedMessagePackage : ISpecificPackage
     {
-        public AddressedMessagePackage(List<Guid> addreseees, Guid autorID, DateTime time, string message)
+        public AddressedMessagePackage(List<Guid> addresees, Guid autorID, DateTime time, string message)
         {
-            Addreseees = addreseees;
+            Addresees = addresees;
             AutorID = autorID;
             Time = time;
             Message = message;
         }
 
-        public List<Guid> Addreseees { get; private set; }
+        public List<Guid> Addresees { get; private set; }
         public Guid AutorID { get; private set; }
         public DateTime Time { get; private set; }
         public string Message { get; private set; }
