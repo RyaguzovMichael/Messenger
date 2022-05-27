@@ -1,11 +1,9 @@
-﻿namespace Packages
+﻿namespace NetworkHelpers;
+
+public enum PackageType
 {
-    public enum PackageInfoType
-    {
-        Ping,
-        BadPackage,
-        NotSupportedRequest,
-        Login,
-        MessageSend
-    }
+    Login,
+    LoginedUsers,
+    Message,
+    AddressedMessage
 }
