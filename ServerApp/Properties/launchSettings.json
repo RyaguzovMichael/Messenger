@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ServerApp": {
+      "commandName": "Project",
+      "workingDirectory": "E:\\OneDrive\\Documents\\_CODE\\Messenger\\ServerApp"
+    }
+  }
+}

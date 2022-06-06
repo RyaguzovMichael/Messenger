@@ -1,1 +1,2 @@
-﻿
+﻿> 06-Jun-22 17:19:39 : -------------- New Session Start ---------------
+> 06-Jun-22 17:19:39 : The server is successfully loaded, and listen port: 50000

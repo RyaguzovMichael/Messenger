@@ -1,20 +1,30 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Package\Package.csproj" />
+    <Compile Remove="Data\**" />
+    <Compile Remove="Helpers\**" />
+    <Compile Remove="Interfaces\**" />
+    <Compile Remove="Model\**" />
+    <Compile Remove="View\**" />
+    <EmbeddedResource Remove="Data\**" />
+    <EmbeddedResource Remove="Helpers\**" />
+    <EmbeddedResource Remove="Interfaces\**" />
+    <EmbeddedResource Remove="Model\**" />
+    <EmbeddedResource Remove="View\**" />
+    <None Remove="Data\**" />
+    <None Remove="Helpers\**" />
+    <None Remove="Interfaces\**" />
+    <None Remove="Model\**" />
+    <None Remove="View\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\" />
-    <Folder Include="Interfaces\" />
-    <Folder Include="Model\" />
-    <Folder Include="Helpers\" />
-    <Folder Include="View\" />
+    <ProjectReference Include="..\NetworkHelpers\NetworkHelpers.csproj" />
   </ItemGroup>
 
 </Project>

@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerApp", "ServerApp\Serv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientApp", "ClientApp\ClientApp.csproj", "{29287E51-E4B7-4D1F-8385-3A2D5C21D854}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Package", "Package\Package.csproj", "{A9E7F5A5-4364-43AB-9994-3F8388CFC967}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetworkHelpers", "NetworkHelpers\NetworkHelpers.csproj", "{C0F515FF-FD75-40A2-A2C3-96F6716C76D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{29287E51-E4B7-4D1F-8385-3A2D5C21D854}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{29287E51-E4B7-4D1F-8385-3A2D5C21D854}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{29287E51-E4B7-4D1F-8385-3A2D5C21D854}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A9E7F5A5-4364-43AB-9994-3F8388CFC967}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A9E7F5A5-4364-43AB-9994-3F8388CFC967}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A9E7F5A5-4364-43AB-9994-3F8388CFC967}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A9E7F5A5-4364-43AB-9994-3F8388CFC967}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0F515FF-FD75-40A2-A2C3-96F6716C76D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0F515FF-FD75-40A2-A2C3-96F6716C76D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0F515FF-FD75-40A2-A2C3-96F6716C76D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0F515FF-FD75-40A2-A2C3-96F6716C76D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
